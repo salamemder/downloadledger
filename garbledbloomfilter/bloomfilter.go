@@ -2,6 +2,8 @@ package garbledbloomfilter
 
 import (
 	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/spaolacci/murmur3"
 	"math/big"
@@ -13,6 +15,12 @@ type GarbledBloomFilter struct {
 	m uint
 	k uint
 	b [][]byte
+}
+
+type ExportedFilter struct {
+	M uint     `json:"M"`
+	K uint     `json:"K"`
+	B []string `json:Filter`
 }
 
 // New creates a new Bloom filter with _m_ bits and _k_ hashing functions
@@ -47,6 +55,28 @@ func (f *GarbledBloomFilter) location(h [4]uint64, i uint) uint {
 	return uint(location(h, i) % uint64(f.m))
 }
 
+func (f *GarbledBloomFilter) Export() ([]byte, error) {
+
+	k := f.k
+	m := f.m
+	stringarray := make([]string, m)
+	for i := uint(0); i < m; i++ {
+		str := base64.StdEncoding.EncodeToString(f.b[i])
+		stringarray[i] = str
+	}
+
+	res1D := &ExportedFilter{
+		m,
+		k,
+		stringarray,
+	}
+	ret, err := json.Marshal(res1D)
+	if err != nil{
+		return nil, err
+	}
+	return ret, nil
+}
+
 // Add data to the Bloom Filter. Returns the filter (allows chaining)
 func (f *GarbledBloomFilter) Add(data []byte) (*GarbledBloomFilter, error) {
 	localtionmap := make(map[uint]*big.Int)
@@ -74,21 +104,21 @@ func (f *GarbledBloomFilter) Add(data []byte) (*GarbledBloomFilter, error) {
 		for key, val := range (localtionmap) {
 			if val == big.NewInt(-1) {
 				pos = key
-			}else{
+			} else {
 				lastelement = new(big.Int).Xor(val, lastelement)
 			}
 		}
 		localtionmap[pos] = lastelement
 
-	}else{
+	} else {
 		handled := false
 		for key, val := range (localtionmap) {
-			if val.Cmp(big.NewInt(-1))==0 && handled == false{
+			if val.Cmp(big.NewInt(-1)) == 0 && handled == false {
 				pos = key
 				handled = true
-			}else{
+			} else {
 				n, err := rand.Int(rand.Reader, max)
-				if err != nil{
+				if err != nil {
 					panic("error in put into the bloom filter")
 				}
 				localtionmap[key] = n
@@ -108,7 +138,7 @@ func (f *GarbledBloomFilter) Add(data []byte) (*GarbledBloomFilter, error) {
 	//fmt.Println(org.Bytes())
 	//fmt.Println("org", data)
 
-	for key, value := range localtionmap{
+	for key, value := range localtionmap {
 		f.b[key] = value.Bytes()
 	}
 	return f, nil
@@ -129,7 +159,7 @@ func (f *GarbledBloomFilter) Get(data []byte) ([]byte, error) {
 		}
 		thisval := new(big.Int).SetBytes(storedval)
 
-		if thisval.Cmp(big.NewInt(-1)) == 0{
+		if thisval.Cmp(big.NewInt(-1)) == 0 {
 
 		}
 		retval = new(big.Int).Xor(retval, thisval)

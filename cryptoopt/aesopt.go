@@ -6,6 +6,8 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/binary"
+	"github.com/spaolacci/murmur3"
 	"io"
 )
 
@@ -124,4 +126,16 @@ func EcbEncrypt(data, key []byte) []byte {
 	}
 
 	return decrypted
+}
+
+func Stringtoaeskey(str string)[]byte{
+	hasher := murmur3.New128()
+	hasher.Write([]byte(str))
+	first,second := hasher.Sum128()
+	bs := make([]byte, 16)
+	binary.LittleEndian.PutUint64(bs[:8], first)
+	binary.LittleEndian.PutUint64(bs[8:],second)
+
+	return bs
+
 }
