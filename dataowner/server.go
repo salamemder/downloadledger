@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"math/big"
 	"math/rand"
+	"net/http"
 	"yanjunshen/cryptoopt"
 	"yanjunshen/garbledbloomfilter"
 )
@@ -15,7 +19,14 @@ const testmasterkey = "mykey23jdlkdleda"
 const demodata = "https://www.monash.edu/study"
 const seed = 324
 const DEFAULTDownload = 100
+const SERVERURL="http://127.0.0.1:3000/secretkey"
 
+
+type FilterStruct struct {
+	URL string  `json:"URL"`
+	Filter []byte `json:Filter`
+	Positionarray [][]uint `Positonarray`
+}
 
 func Gen_sk_CSK_x(downloadcount *int, SK []byte)([]uint64, []string){
 	rand.Seed(seed)
@@ -61,7 +72,6 @@ func main(){
 
 	SK := []byte(testfilekey)
 	filter := garbledbloomfilter.New(20*(*filtersize), *k) // load of 20, 5 keys
-	filter.Add([]byte("helsdfdsfsflo"))
 	_, err := aescrypto.Encrypt([]byte(demodata), SK)
 	if err != nil{
 		fmt.Println("error in encrypt the file")
@@ -69,13 +79,39 @@ func main(){
 	}
 
 	_,CSK_x_Array :=Gen_sk_CSK_x(downloadcount, SK)
+	positionsforeachcount := make([][]uint, len(CSK_x_Array))
+	i := 0
 	for _, each := range CSK_x_Array {
-		filter.Add([]byte(each))
+		_,locationsarray, err := filter.Add([]byte(each))
+		if err != nil{
+			panic("creating the bloom filter panic")
+		}
+		positionsforeachcount[i] = locationsarray
+		i += 1
+		break
 	}
-	_, err := filter.Export()
+	log.Println([]byte(CSK_x_Array[0]))
+	exportfilter, err := filter.Export()
 	if err != nil{
 		fmt.Println("error in export the bloom filter")
 	}
 
+	uploadedfilter := FilterStruct{
+		demodata,
+		exportfilter,
+		positionsforeachcount,
+	}
+
+	uploadedbytes, err := json.Marshal(uploadedfilter)
+
+	resp, err := http.Post(SERVERURL, "application/json", bytes.NewBuffer(uploadedbytes))
+
+	if err != nil{
+		fmt.Println(err)
+	}
+
+	if resp.StatusCode == 200{
+		fmt.Println("upload the bloom filter to the server successfully")
+	}
 	return
 }

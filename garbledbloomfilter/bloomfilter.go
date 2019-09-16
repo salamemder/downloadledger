@@ -55,6 +55,22 @@ func (f *GarbledBloomFilter) location(h [4]uint64, i uint) uint {
 	return uint(location(h, i) % uint64(f.m))
 }
 
+func Import(filter ExportedFilter) (*GarbledBloomFilter, error){
+
+	storage := make([][]byte, filter.M)
+	for i :=uint(0); i< filter.M;i++{
+		str,err := base64.StdEncoding.DecodeString(filter.B[i])
+		if err != nil{
+			fmt.Println("broken bloomfilter file")
+			return nil, err
+		}
+		storage[i] = str
+	}
+	return &GarbledBloomFilter{filter.M, filter.K, storage}, nil
+
+
+}
+
 func (f *GarbledBloomFilter) Export() ([]byte, error) {
 
 	k := f.k
@@ -78,7 +94,7 @@ func (f *GarbledBloomFilter) Export() ([]byte, error) {
 }
 
 // Add data to the Bloom Filter. Returns the filter (allows chaining)
-func (f *GarbledBloomFilter) Add(data []byte) (*GarbledBloomFilter, error) {
+func (f *GarbledBloomFilter) Add(data []byte) (*GarbledBloomFilter,[]uint, error) {
 	localtionmap := make(map[uint]*big.Int)
 	empty := 0
 	h := baseHashes(data)
@@ -97,7 +113,7 @@ func (f *GarbledBloomFilter) Add(data []byte) (*GarbledBloomFilter, error) {
 		}
 	}
 	if empty == 0 {
-		return nil, fmt.Errorf("no position for this key")
+		return nil, nil, fmt.Errorf("no position for this key")
 	}
 	pos := uint(0)
 	if empty == 1 {
@@ -138,13 +154,30 @@ func (f *GarbledBloomFilter) Add(data []byte) (*GarbledBloomFilter, error) {
 	//fmt.Println(org.Bytes())
 	//fmt.Println("org", data)
 
+	locationsarray := make([]uint, f.k)
+	i := 0
 	for key, value := range localtionmap {
 		f.b[key] = value.Bytes()
+		locationsarray[i] = key
+		i += 1
 	}
-	return f, nil
+
+	return f, locationsarray, nil
 }
 
-// Add data to the Bloom Filter. Returns the filter (allows chaining)
+//get data with position
+func (f *GarbledBloomFilter) GetByCnt(pos []uint) ([]byte, error) {
+
+	org:= big.NewInt(0)
+	for _, each := range pos{
+
+		org = org.Xor(org, new(big.Int).SetBytes(f.b[each]))
+	}
+	return org.Bytes(), nil
+}
+
+
+//get data from the filter
 func (f *GarbledBloomFilter) Get(data []byte) ([]byte, error) {
 	h := baseHashes(data)
 
