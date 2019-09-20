@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-martini/martini"
 	"io/ioutil"
 	"log"
@@ -82,6 +83,7 @@ func QueryDowload(r *http.Request) (int, []byte) {
 			return http.StatusAccepted, retdata
 		}
 		val.counter +=1
+		fmt.Println(val)
 		Filterdic[url] = val
 	}else{
 		return http.StatusBadRequest,nil

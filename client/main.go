@@ -15,7 +15,7 @@ func GetDatafromServer() []byte{
 
 	URLDATA := SERVERURL+"?"+"url="+demodata
 	resp, err := http.Get(URLDATA)
-	if err == nil{
+	if err != nil{
 		log.Println("error in query the server")
 	}
 	if resp.StatusCode != 202{
