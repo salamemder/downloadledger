@@ -1,13 +1,12 @@
 package main
 
 import (
+	"download/garbledbloomfilter"
 	"encoding/json"
-	"fmt"
 	"github.com/go-martini/martini"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"yanjunshen/garbledbloomfilter"
 )
 
 type FilterStruct struct {
@@ -72,7 +71,6 @@ func AddFilter(r *http.Request) (int) {
 func QueryDowload(r *http.Request) (int, []byte) {
 	qs := r.URL.Query()
 	url := qs.Get("url")
-
 	if val, ok := Filterdic[url]; ok {
 		counter := val.counter
 		retdata, err := val.filter.GetByCnt(val.Positionarray[counter])
@@ -80,11 +78,11 @@ func QueryDowload(r *http.Request) (int, []byte) {
 		if err != nil{
 			return http.StatusBadRequest, nil
 		}else{
+			val.counter +=1
+			Filterdic[url] = val
 			return http.StatusAccepted, retdata
 		}
-		val.counter +=1
-		fmt.Println(val)
-		Filterdic[url] = val
+
 	}else{
 		return http.StatusBadRequest,nil
 	}

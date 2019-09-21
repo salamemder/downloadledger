@@ -1,6 +1,8 @@
 package main
 
 import (
+	aescrypto "download/cryptoopt"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -30,7 +32,15 @@ func GetDatafromServer() []byte{
 
 func main(){
 	encryptedkeyServer := GetDatafromServer()
-	log.Println(encryptedkeyServer)
+
+	encodedstring:= "F3k8RFfE6IpPFk4zur88NNwhoRl/r0bA2tot5xSKX/Q="
+		sk_x := aescrypto.Stringtoaeskey(encodedstring)
+
+	decrypeted,_ := aescrypto.Decrypt(string(encryptedkeyServer),sk_x)
+	fmt.Println(decrypeted)
+
+
+	//log.Println(encryptedkeyServer)
 
 
 

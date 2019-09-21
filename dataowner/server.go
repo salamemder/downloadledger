@@ -2,6 +2,9 @@ package main
 
 import (
 	"bytes"
+	"download/cryptoopt"
+	"download/garbledbloomfilter"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"flag"
@@ -10,12 +13,10 @@ import (
 	"math/big"
 	"math/rand"
 	"net/http"
-	"yanjunshen/cryptoopt"
-	"yanjunshen/garbledbloomfilter"
 )
 
-const testfilekey = "mykey44444444444"
-const testmasterkey = "mykey23jdlkdleda"
+const testfilekey = "mykey44444444444"      //this is for encrypt the file
+const testmasterkey = "mykey23jdlkdleda"    //this is for encrypt the random sequence
 const demodata = "https://www.monash.edu/study"
 const seed = 324
 const DEFAULTDownload = 100
@@ -28,7 +29,7 @@ type FilterStruct struct {
 	Positionarray [][]uint `Positonarray`
 }
 
-func Gen_sk_CSK_x(downloadcount *int, SK []byte)([]uint64, []string){
+func Gen_sk_CSK_x(downloadcount *int, SK []byte)([]string, []string){
 	rand.Seed(seed)
 	x_hat_array := make([]uint64,DEFAULTDownload)
 	skx_array := make([]string, DEFAULTDownload)
@@ -57,7 +58,7 @@ func Gen_sk_CSK_x(downloadcount *int, SK []byte)([]uint64, []string){
 		}
 		CSK_x_Array[i] = C_sk_x
 	}
-	return x_hat_array, CSK_x_Array
+	return skx_array, CSK_x_Array
 
 }
 
@@ -78,7 +79,7 @@ func main(){
 		return
 	}
 
-	_,CSK_x_Array :=Gen_sk_CSK_x(downloadcount, SK)
+	decrypoolkey,CSK_x_Array :=Gen_sk_CSK_x(downloadcount, SK)
 	positionsforeachcount := make([][]uint, len(CSK_x_Array))
 	i := 0
 	for _, each := range CSK_x_Array {
@@ -88,7 +89,6 @@ func main(){
 		}
 		positionsforeachcount[i] = locationsarray
 		i += 1
-		break
 	}
 	log.Println([]byte(CSK_x_Array[0]))
 	exportfilter, err := filter.Export()
@@ -103,7 +103,6 @@ func main(){
 	}
 
 	uploadedbytes, err := json.Marshal(uploadedfilter)
-
 	resp, err := http.Post(SERVERURL, "application/json", bytes.NewBuffer(uploadedbytes))
 
 	if err != nil{
@@ -113,5 +112,14 @@ func main(){
 	if resp.StatusCode == 200{
 		fmt.Println("upload the bloom filter to the server successfully")
 	}
+
+	sendledger,_  := json.Marshal(decrypoolkey)
+	sendledgerbase64 := base64.StdEncoding.EncodeToString(sendledger)
+	fmt.Println(sendledgerbase64)
+	var ss []string
+	json.Unmarshal(sendledger,&ss)
+	fmt.Println(ss, "length", len(ss))
+
+
 	return
 }
