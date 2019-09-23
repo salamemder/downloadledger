@@ -1,12 +1,13 @@
 package main
 
 import (
-	"download/garbledbloomfilter"
 	"encoding/json"
+	"fmt"
 	"github.com/go-martini/martini"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"download/garbledbloomfilter"
 )
 
 type FilterStruct struct {
@@ -64,6 +65,7 @@ func AddFilter(r *http.Request) (int) {
 	}
 
 	Filterdic[url] = data
+	fmt.Println(url)
 
 	return http.StatusAccepted
 }

@@ -94,12 +94,12 @@ func (f *GarbledBloomFilter) Export() ([]byte, error) {
 }
 
 // Add data to the Bloom Filter. Returns the filter (allows chaining)
-func (f *GarbledBloomFilter) Add(data []byte) (*GarbledBloomFilter,[]uint, error) {
+func (f *GarbledBloomFilter) Add(data []byte,loop int) (*GarbledBloomFilter,[]uint, error) {
 	localtionmap := make(map[uint]*big.Int)
 	empty := 0
 	h := baseHashes(data)
 	max := new(big.Int)
-	max.Exp(big.NewInt(2), big.NewInt(130), nil).Sub(max, big.NewInt(1))
+	max.Exp(big.NewInt(2), big.NewInt(512), nil).Sub(max, big.NewInt(1))
 	lastelement := new(big.Int).SetBytes(data)
 	for i := uint(0); i < f.k; i++ {
 		location := f.location(h, i)
@@ -133,10 +133,12 @@ func (f *GarbledBloomFilter) Add(data []byte) (*GarbledBloomFilter,[]uint, error
 				pos = key
 				handled = true
 			} else {
-				n, err := rand.Int(rand.Reader, max)
-				if err != nil {
-					panic("error in put into the bloom filter")
+				n := val
+				if n.Cmp(big.NewInt(-1))== 0 {
+					n,_ = rand.Int(rand.Reader, max)
+
 				}
+
 				localtionmap[key] = n
 				lastelement = lastelement.Xor(lastelement, n)
 			}
