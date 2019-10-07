@@ -104,14 +104,7 @@ func main(){
 
 
 	dotset(decrypoolkey, CSK_x_Array, filter, positionsforeachcount)
-
-	return
-
-
-	//sk_x := aescrypto.Stringtoaeskey(decrypoolkey[0])
-	//
-	//decrypeted,_ := aescrypto.Decrypt(string(CSK_x_Array[0]),sk_x)
-	//log.Println(decrypeted)
+	
 
 	exportfilter, err := filter.Export()
 	if err != nil{
