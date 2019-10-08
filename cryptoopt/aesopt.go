@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
+	"fmt"
 	"github.com/spaolacci/murmur3"
 	"io"
 )
@@ -25,6 +26,10 @@ func PKCS7Padding(ciphertext []byte, blockSize int) []byte {
 func PKCS7UnPadding(origData []byte) []byte {
 	length := len(origData)
 	unpadding := int(origData[length-1])
+
+	if length - unpadding <1{
+		return nil
+	}
 	return origData[:(length - unpadding)]
 }
 
@@ -79,6 +84,9 @@ func AesCBCDncrypt(encryptData, key []byte) ([]byte, error) {
 	mode.CryptBlocks(encryptData, encryptData)
 	//解填充
 	encryptData = PKCS7UnPadding(encryptData)
+	if encryptData ==  nil{
+		return nil, fmt.Errorf("error in decode")
+	}
 	return encryptData, nil
 }
 

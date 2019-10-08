@@ -68,21 +68,27 @@ func main(){
 	}
 
 	resultstr := stderr.String()
-
 	formatedstr := strings.Split(resultstr,`\n`)
+
+
 	targetstr := formatedstr[len(formatedstr)-1]
 	finalstr := strings.SplitAfter(targetstr, "payload:")
-
 	decodekey := finalstr[len(finalstr)-1]
-	decodekeybyte := []byte(decodekey)
-	length := len(decodekeybyte)
-	decodekey = string(decodekeybyte[1:length-3])
+	decodekey  = strings.TrimSuffix(decodekey, "\n")
+
+	lengthstring := len(decodekey)-2
+	decodekey = decodekey[1:lengthstring]
+
+	//decodekeybyte := []byte(decodekey)
+
+
+	//decodekey = string(decodekeybyte[1:length-3])
 
 	sk_x := aescrypto.Stringtoaeskey(decodekey)
 
 
-	fmt.Println(encryptedkeyServer)
-	fmt.Println(decodekey)
+	//fmt.Println(encryptedkeyServer)
+	//fmt.Println(decodekey)
 
 
 	decrypeted,err := aescrypto.Decrypt(string(encryptedkeyServer),sk_x)

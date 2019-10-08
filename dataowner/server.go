@@ -104,7 +104,7 @@ func main(){
 
 
 	dotset(decrypoolkey, CSK_x_Array, filter, positionsforeachcount)
-	
+
 
 	exportfilter, err := filter.Export()
 	if err != nil{
