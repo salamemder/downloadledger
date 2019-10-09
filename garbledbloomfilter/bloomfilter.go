@@ -101,6 +101,7 @@ func (f *GarbledBloomFilter) Add(data []byte,loop int) (*GarbledBloomFilter,[]ui
 	max := new(big.Int)
 	max.Exp(big.NewInt(2), big.NewInt(512), nil).Sub(max, big.NewInt(1))
 	lastelement := new(big.Int).SetBytes(data)
+	lastelement = new(big.Int).Mod(lastelement, max)
 	for i := uint(0); i < f.k; i++ {
 		location := f.location(h, i)
 		if len(f.b[location]) == 0 {

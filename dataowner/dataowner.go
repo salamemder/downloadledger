@@ -54,17 +54,17 @@ func Gen_sk_CSK_x(downloadcount *int, SK []byte)([]string, []string){
 			fmt.Println("encode the conter failed!")
 		}
 
-		skx_array[i]=encodedstring
-		sk_x := aescrypto.Stringtoaeskey(encodedstring)
+
+		skx_array[i]=base64.StdEncoding.EncodeToString([]byte(encodedstring))
+		encbs := aescrypto.Stringtoaeskey(string(bs))
+
 		//we ensure the key size as 128
-		if len(sk_x) != 16{
-			panic("incorrect sk_x key size")
-		}
+
 		var C_sk_x string
 		if i < *downloadcount {
-			C_sk_x, err = aescrypto.Encrypt(SK, sk_x)
+			C_sk_x, err = aescrypto.Encrypt(SK, encbs)
 		}else{
-			C_sk_x, err = aescrypto.Encrypt([]byte("ABORT"), sk_x)
+			C_sk_x, err = aescrypto.Encrypt([]byte("ABORT"), encbs)
 		}
 		CSK_x_Array[i] = C_sk_x
 	}
@@ -82,7 +82,7 @@ func main(){
 
 
 	SK := []byte(testfilekey)
-	filter := garbledbloomfilter.New(20*(*filtersize), *k) // load of 20, 5 keys
+	filter := garbledbloomfilter.New(20*(*filtersize), *k) // filtersize, 5 keys by default
 	_, err := aescrypto.Encrypt([]byte(demodata), SK)
 	if err != nil{
 		fmt.Println("error in encrypt the file")
@@ -101,10 +101,7 @@ func main(){
 		i += 1
 	}
 
-
-
-	dotset(decrypoolkey, CSK_x_Array, filter, positionsforeachcount)
-
+	//dotset(decrypoolkey, CSK_x_Array, filter, positionsforeachcount)
 
 	exportfilter, err := filter.Export()
 	if err != nil{
