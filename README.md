@@ -18,7 +18,7 @@ The architecture of the system is like:
 *  change directory to fabric-samples/chaincode-docker-devmode and run the command **docker-compose -f docker-compose-simple.yaml up**
 
 *  
-   **under  docker exec -it chaincode sh**
+   **under  docker exec -it chaincode bash**
     - cd chaincode_example02/go
     - go build -o chaincode_example02
     - CORE_PEER_ADDRESS=peer:7052 CORE_CHAINCODE_ID_NAME=mycc:0 ./chaincode_example02
@@ -28,8 +28,8 @@ The architecture of the system is like:
     -   peer chaincode install -p chaincodedev/chaincode/chaincode_example02/go -n mycc -v 0
    -   peer chaincode instantiate -n mycc -v 0 -c '{"Args":["init","a","100","b","200"]}' -C myc
 
-## 2. In another terminal run the data server, data owner and client seperately.
-  
+## 2. In another terminal run the data server, data owner and client seperately(ensure you run the command **docker exec -ti cli bash** firstly, and all the command should be run inside cli container).
+ 
 * server:
   - cd /app/server and run ./server 
 

@@ -86,63 +86,122 @@ func querybloclchain(url string) string{
 
 }
 
-func main(){
-	encryptedkeyServer := GetDatafromServer(DEMOURL)
+func ShowMsg(){
+
+	fmt.Printf("*********************\n")
+	fmt.Println("1: test key decryption.\n2: test concurrency.\n3: quit program\n")
+	fmt.Printf("*********************\n")
+
+
+}
+
+func Testkeydecryption() string{
+
 
 	decodekey := querybloclchain(DEMOURL)
 
-	decoded, err := base64.StdEncoding.DecodeString(decodekey)
-
-	if err != nil{
-		fmt.Println(err)
-	}
 
 
 
-	encodedstring, err := aescrypto.Decrypt(string(decoded), []byte(testmasterkey))
-	if err != nil{
-		fmt.Println(err)
-	}
 
-	sk_x := aescrypto.Stringtoaeskey(encodedstring)
+	return decodekey
+
+}
+
+func main(){
 
 
-	decrypeted,err := aescrypto.Decrypt(string(encryptedkeyServer),sk_x)
-
-	if err != nil{
-		fmt.Println(err)
-	}
-
-	fmt.Printf("mast key %s\n",  decrypeted)
-
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("press any key to test concurrency waiting time: ")
-	reader.ReadString('\n')
-	fmt.Println("preparing.......")
-	pre := decodekey
-	var timestart time.Time
+	previouskey:= ""
 	for {
+		ShowMsg()
+		fmt.Print("")
+		reader := bufio.NewReader(os.Stdin)
+		input,_ := reader.ReadString('\n')
 
-		decodekey = querybloclchain(DEMOURL)
-		if decodekey == pre{
-			time.Sleep(time.Second)
-		}else{
-			timestart = time.Now()
+		switch input {
+		case "1\n":
+			for {
+				decodekey := querybloclchain(DEMOURL)
+				if decodekey == previouskey {
+					time.Sleep(time.Second)
+					continue
+				} else {
+					previouskey = decodekey
+					encryptedkeyServer := GetDatafromServer(DEMOURL)
+
+					decoded, err := base64.StdEncoding.DecodeString(decodekey)
+
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					encodedstring, err := aescrypto.Decrypt(string(decoded), []byte(testmasterkey))
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					sk_x := aescrypto.Stringtoaeskey(encodedstring)
+
+					decrypeted, err := aescrypto.Decrypt(string(encryptedkeyServer), sk_x)
+
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					fmt.Printf("mast key %s\n", decrypeted)
+					break
+				}
+			}
+		case "2\n":
+
+			var timestart time.Time
+			var pre string
+			for {
+				decodekey := querybloclchain(DEMOURL)
+				if decodekey == previouskey{
+					time.Sleep(time.Second)
+				}else{
+					fmt.Printf("get data from server\n")
+					GetDatafromServer(DEMOURL)
+					pre = decodekey
+					timestart = time.Now()
+					break
+				}
+
+			}
+			var delta time.Duration
+			for {
+				decodekey := querybloclchain(DEMOURL)
+				if decodekey == pre{
+					time.Sleep(time.Millisecond*10)
+				}else{
+					fmt.Printf("get data from server\n")
+
+					GetDatafromServer(DEMOURL)
+					delta = time.Since(timestart)
+					break
+				}
+
+			}
+			fmt.Println(delta, "with +-10 ms")
+
+
+		case "3\n":
+			break
+		default:
+			fmt.Println("invalid input")
+			continue
+		}
+		if input == "3\n"{
 			break
 		}
 
 	}
-	var delta time.Duration
-	for {
-		decodekey = querybloclchain(DEMOURL)
-		if decodekey == pre{
-			time.Sleep(time.Millisecond*10)
-		}else{
-			delta = time.Since(timestart)
-			break
-		}
+	return
 
-	}
-	fmt.Println(delta, "with +-10 ms")
+
+
+
+
 
 }
