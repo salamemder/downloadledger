@@ -112,6 +112,7 @@ func main(){
 
 
 	previouskey:= ""
+        counter :=0
 	for {
 		ShowMsg()
 		fmt.Print("")
@@ -142,13 +143,28 @@ func main(){
 
 					sk_x := aescrypto.Stringtoaeskey(encodedstring)
 
-					decrypeted, err := aescrypto.Decrypt(string(encryptedkeyServer), sk_x)
-
+					decrypted, err := aescrypto.Decrypt(string(encryptedkeyServer), sk_x)
+					counter += 1
 					if err != nil {
-						fmt.Println(err)
+						fmt.Println("Failed to decrypt data, inconsistent download count")
 					}
 
-					fmt.Printf("mast key %s\n", decrypeted)
+					if counter == 2{
+					    fmt.Println("Fail to decrypt data, inconsistent download count")
+	 				    break
+					}
+
+					if decrypted == "ABORT"{
+					    fmt.Println("Execeed download limit")
+					    break
+					}
+					
+					if decrypted == "This is the Demo"{
+
+					    fmt.Println("This is the Demo data")
+					}else{
+					    fmt.Printf("Decrypted data error")
+					}
 					break
 				}
 			}

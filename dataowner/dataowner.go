@@ -19,7 +19,7 @@ import (
 	"strings"
 )
 
-const testfilekey = "mykey44444444444"      //this is for encrypt the file
+const testfilekey = "This is the Demo data."      //this is for encrypt the file
 const testmasterkey = "mykey23jdlkdleda"    //this is for encrypt the random sequence
 const demodata = "https://www.monash.edu/study"
 const seed = 324
@@ -81,7 +81,7 @@ func main(){
 	flag.Parse()
 
 
-	SK := []byte(testfilekey)
+	SK := []byte(testfilekey)[:16]
 	filter := garbledbloomfilter.New(20*(*filtersize), *k) // filtersize, 5 keys by default
 	_, err := aescrypto.Encrypt([]byte(demodata), SK)
 	if err != nil{
