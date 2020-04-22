@@ -29,6 +29,7 @@ import (
 	"encoding/base64"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
+	"time"
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -52,12 +53,24 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("ex02 Invoke")
 	function, args := stub.GetFunctionAndParameters()
 	if function == "downloadquery" {
+		now:=time.Now()
+		defer func() {
+			delta := time.Since(now)
+			fmt.Printf("time spent for download query at blockchain-----------%v\n", delta)
+		}()
+		
 		// Make payment of X units from A to B
 		return t.downloadquery(stub, args)
 	} else if function == "delete" {
 		// Deletes an entity from its state
 		return t.delete(stub, args)
 	} else if function == "upload" {
+		now:=time.Now()
+		defer func() {
+			delta := time.Since(now)
+			fmt.Printf("time spent for query upload at server-----------%v\n", delta)
+		}()
+		
 		// the old "Query" is now implemtned in invoke
 		return t.upload(stub, args)
 	}
