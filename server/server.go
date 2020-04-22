@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"download/garbledbloomfilter"
+	"time"
 )
 
 type FilterStruct struct {
@@ -31,7 +32,12 @@ func init(){
 
 // AddAlbum creates the posted album.
 func AddFilter(r *http.Request) (int) {
-
+	now:=time.Now()
+	defer func() {
+		delta := time.Since(now)
+		fmt.Printf("time spent for build GBF at server-----------%v\n", delta)
+	}()
+	
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
@@ -71,6 +77,12 @@ func AddFilter(r *http.Request) (int) {
 }
 
 func QueryDowload(r *http.Request) (int, []byte) {
+	now:=time.Now()
+	defer func() {
+		delta := time.Since(now)
+		fmt.Printf("time spent for query download at server-----------%v\n", delta)
+	}()
+
 	qs := r.URL.Query()
 	url := qs.Get("url")
 	if val, ok := Filterdic[url]; ok {
